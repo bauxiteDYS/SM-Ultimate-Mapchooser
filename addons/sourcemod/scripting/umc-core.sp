@@ -298,7 +298,7 @@ public OnPluginStart()
 	//Fetch Cvars
 	cvar_maxrounds  = FindConVar("mp_maxrounds");
 	cvar_fraglimit  = FindConVar("mp_fraglimit");
-	cvar_winlimit   = FindConVar("mp_winlimit");
+	cvar_winlimit   = FindConVar("neo_score_limit");
 	cvar_zpsmaxrnds = FindConVar("zps_survival_rounds"); // ZPS only!
 	cvar_zpomaxrnds = FindConVar("zps_objective_rounds"); // ZPS only!
 
