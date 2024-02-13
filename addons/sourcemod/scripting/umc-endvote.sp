@@ -425,8 +425,9 @@ public OnPluginStart()
 }
 
 //****** NEOTOKYO Modification Start ******
-public Action:Event_RoundRestrat(Handle:event,const String:name[],bool:dontBroadcast){
-    
+public Action:Event_RoundRestrat(Handle:event,const String:name[],bool:dontBroadcast)
+{
+    /*
     if (g_ChangeMapAtRoundEnd)
     {
         g_ChangeMapAtRoundEnd = false;
@@ -438,23 +439,29 @@ public Action:Event_RoundRestrat(Handle:event,const String:name[],bool:dontBroad
     {
         return;
     }
-    
-    if (cvar_winlimit != INVALID_HANDLE){
+    */
+    	if (cvar_winlimit != INVALID_HANDLE)
+	{
         
-        new winlimit = GetConVarInt(cvar_winlimit);
-        new JinScore = GetTeamScore(TEAM_Jin);
-        new NSFScore = GetTeamScore(TEAM_NSF);
+		new winlimit = GetConVarInt(cvar_winlimit);
+		new JinScore = GetTeamScore(TEAM_Jin);
+		new NSFScore = GetTeamScore(TEAM_NSF);
         
-        if(JinScore > NSFScore){
-            if (JinScore >= (winlimit - GetConVarInt(cvar_start_rounds))){
-                InitiateVote(MapChange_MapEnd, INVALID_HANDLE);
-            }
-        }else if(NSFScore > JinScore){
-            if (NSFScore >= (winlimit - GetConVarInt(cvar_start_rounds))){
-                InitiateVote(MapChange_MapEnd, INVALID_HANDLE);
-            }
-        }
-    }
+		if(JinScore > NSFScore)
+		{
+            		if (JinScore >= (winlimit - GetConVarInt(cvar_start_rounds)))
+			{
+                		StartRTV();
+			}
+        	}
+		else if(NSFScore > JinScore)
+		{
+        		if (NSFScore >= (winlimit - GetConVarInt(cvar_start_rounds)))
+			{
+                		StartRTV();
+            		}
+        	}
+	}
 }
 //****** NEOTOKYO Modification End ******
 
