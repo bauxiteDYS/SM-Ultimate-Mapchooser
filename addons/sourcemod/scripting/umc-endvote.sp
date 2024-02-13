@@ -19,6 +19,10 @@ along with this plugin.  If not, see <http://www.gnu.org/licenses/>.
 *************************************************************************/   
 #pragma semicolon 1
 
+//****** NEOTOKYO Modification Start ******
+#include <sdktools>
+//****** NEOTOKYO Modification End ******
+
 #include <sourcemod>
 #include <umc-core>
 #include <umc_utils>
@@ -107,6 +111,11 @@ new Float:vote_delaystart;
 
 //Counts the rounds.
 new round_counter = 0;
+
+//****** NEOTOKYO Modification Start ******
+#define TEAM_Jin    2
+#define TEAM_NSF    3
+//****** NEOTOKYO Modification End ******
 
 //Counts how many times each team has won.
 #define MAXTEAMS 10
@@ -349,7 +358,13 @@ public OnPluginStart()
 	//Set up our "timers" for the end-of-map vote.
 	cvar_maxrounds  = FindConVar("mp_maxrounds");
 	cvar_fraglimit  = FindConVar("mp_fraglimit");
-	cvar_winlimit   = FindConVar("mp_winlimit");
+
+	//****** NEOTOKYO Modification Start ******
+	//cvar_winlimit   = FindConVar("mp_winlimit");
+	cvar_winlimit = FindConVar("neo_score_limit");
+	//****** NEOTOKYO Modification End ******
+
+	
 	cvar_zpsmaxrnds = FindConVar("zps_survival_rounds"); // ZPS only!
 	cvar_zpomaxrnds = FindConVar("zps_objective_rounds"); // ZPS only!
 
@@ -366,6 +381,10 @@ public OnPluginStart()
 		HookEventEx("cs_match_end_restart",   Event_RestartRound); //CS:GO
 		HookEventEx("round_win",              Event_RoundEnd); //Nuclear Dawn
 		HookEventEx("game_end",               Event_RoundEnd); //EmpiresMod
+
+		//****** NEOTOKYO Modification Start ******
+		HookEvent("game_round_start", Event_RoundRestrat, EventHookMode_PostNoCopy);
+		//****** NEOTOKYO Modification End ******
 	}
 
 	// ZPS Specific
@@ -404,6 +423,40 @@ public OnPluginStart()
 	win_tick_forward     = CreateGlobalForward("UMC_EndVote_OnWinTimerTicked", ET_Ignore, Param_Cell, Param_Cell);
 	frag_tick_forward    = CreateGlobalForward("UMC_EndVote_OnFragTimerTicked", ET_Ignore, Param_Cell, Param_Cell);
 }
+
+//****** NEOTOKYO Modification Start ******
+public Action:Event_RoundRestrat(Handle:event,const String:name[],bool:dontBroadcast){
+    
+    if (g_ChangeMapAtRoundEnd)
+    {
+        g_ChangeMapAtRoundEnd = false;
+        CreateTimer(2.0, Timer_ChangeMap, INVALID_HANDLE, TIMER_FLAG_NO_MAPCHANGE);
+        g_ChangeMapInProgress = true;
+    }
+    
+    if (!GetArraySize(g_MapList) || g_HasVoteStarted || g_MapVoteCompleted)
+    {
+        return;
+    }
+    
+    if (cvar_winlimit != INVALID_HANDLE){
+        
+        new winlimit = GetConVarInt(cvar_winlimit);
+        new JinScore = GetTeamScore(TEAM_Jin);
+        new NSFScore = GetTeamScore(TEAM_NSF);
+        
+        if(JinScore > NSFScore){
+            if (JinScore >= (winlimit - GetConVarInt(cvar_start_rounds))){
+                InitiateVote(MapChange_MapEnd, INVALID_HANDLE);
+            }
+        }else if(NSFScore > JinScore){
+            if (NSFScore >= (winlimit - GetConVarInt(cvar_start_rounds))){
+                InitiateVote(MapChange_MapEnd, INVALID_HANDLE);
+            }
+        }
+    }
+}
+//****** NEOTOKYO Modification End ******
 
 //************************************************************************************************//
 //                                           GAME EVENTS                                          //
