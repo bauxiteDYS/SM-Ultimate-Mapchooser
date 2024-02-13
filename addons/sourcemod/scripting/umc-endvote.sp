@@ -463,6 +463,82 @@ public Action:Event_RoundRestrat(Handle:event,const String:name[],bool:dontBroad
         	}
 	}
 }
+
+public StartRTV()
+{
+	LogUMCMessage("Starting RTV.");
+
+	//Clear the array of clients who have entered RTV.
+	ClearArray(rtv_clients);
+	rtv_completed = true;
+	new postAction = GetConVarInt(cvar_rtv_postaction);
+
+	//Change the map immediately if there has already been an end-of-map vote AND
+	//the cvar that handles RTV actions after end-of-map votes specifies to change the map.
+	if (vote_completed && postAction == 0)
+	{
+		//Get the next map set by the vote.
+		decl String:temp[MAP_LENGTH];
+		GetNextMap(temp, sizeof(temp));
+
+		LogUMCMessage("End of map vote has already been completed, changing map.");
+
+		//Change to it.
+		ForceChangeInFive(temp, "RTV");
+	}
+	//Otherwise, build the RTV vote if a vote hasn't already been completed.
+	else if (!vote_completed || postAction == 2)
+	{
+		//Do nothing if there is a vote already in progress.
+		if (!UMC_IsNewVoteAllowed("core")) 
+		{
+			LogUMCMessage("There is a vote already in progress, cannot start a new vote.");
+			MakeRetryVoteTimer(StartRTV);
+			return;
+		}
+
+		rtv_inprogress = true;
+		decl String:flags[64];
+		GetConVarString(cvar_voteflags, flags, sizeof(flags));
+
+		new clients[MAXPLAYERS+1];
+		new numClients;
+		GetClientsWithFlags(flags, clients, sizeof(clients), numClients);
+
+		//Start the UMC vote.
+		new bool:result = UMC_StartVote(
+			"core",
+			map_kv,                                                     //Mapcycle
+			umc_mapcycle,                                               //Complete Mapcycle
+			UMC_VoteType:GetConVarInt(cvar_rtv_type),                   //Vote Type (map, group, tiered)
+			GetConVarInt(cvar_vote_time),                               //Vote duration
+			GetConVarBool(cvar_scramble),                               //Scramble
+			vote_start_sound,                                           //Start Sound
+			vote_end_sound,                                             //End Sound
+			false,                                                      //Extend option
+			0.0,                                                        //How long to extend the timelimit by,
+			0,                                                          //How much to extend the roundlimit by,
+			0,                                                          //How much to extend the fraglimit by,
+			GetConVarBool(cvar_rtv_dontchange),                         //Don't Change option
+			GetConVarFloat(cvar_vote_threshold),                        //Threshold
+			UMC_ChangeMapTime:GetConVarInt(cvar_rtv_changetime),        //Success Action (when to change the map)
+			UMC_VoteFailAction:GetConVarInt(cvar_fail_action),          //Fail Action (runoff / nothing)
+			GetConVarInt(cvar_runoff),                                  //Max Runoffs
+			GetConVarInt(cvar_runoff_max),                              //Max maps in the runoff
+			UMC_RunoffFailAction:GetConVarInt(cvar_runoff_fail_action), //Runoff Fail Action
+			runoff_sound,                                               //Runoff Sound
+			GetConVarBool(cvar_strict_noms),                            //Nomination Strictness
+			GetConVarBool(cvar_vote_allowduplicates),                   //Ignore Duplicates
+			clients,
+			numClients
+		);
+
+		if (!result)
+		{
+			LogUMCMessage("Could not start UMC vote.");
+		}
+	}
+}
 //****** NEOTOKYO Modification End ******
 
 //************************************************************************************************//
